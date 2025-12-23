@@ -262,7 +262,7 @@ function buildFilters(uiState: any): Filters {
 }
 ```
 
-#### 2) SOLID (SRP) и логика из твоих компонентов
+#### 2) SOLID (SRP) и логика из компонентов
 *   **AuthClient:** простые endpoint’ы, явные проверки и т.д.
 *   **FilterModule:** только формирование запроса и загрузка данных.
 *   **ExportModule:** только экспорт.
