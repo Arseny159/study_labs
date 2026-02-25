@@ -1,0 +1,75 @@
+name: CI - Build images & Integration tests (DB + Newman)
+
+on:
+  push:
+    branches: [Lab_Work_№5]
+  pull_request:
+    branches: [Lab_Work_№5]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      COMPOSE_PROJECT_NAME: hrbi
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start services
+        run: docker compose up -d
+
+      - name: Wait for Postgres to be healthy
+        run: |
+          echo "Waiting for db health..."
+          for i in {1..60}; do
+            CID=$(docker compose ps -q db)
+            STATUS=$(docker inspect --format='{{json .State.Health.Status}}' "$CID" | tr -d '"')
+            echo "db health: $STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "DB did not become healthy"
+          docker compose logs db
+          exit 1
+
+      - name: DB smoke test
+        run: docker compose exec -T db psql -U hrbi -d hrbi -c "SELECT 1;"
+
+      - name: Wait for backend to be healthy
+        run: |
+          echo "Waiting for backend health..."
+          for i in {1..60}; do
+            CID=$(docker compose ps -q backend)
+            STATUS=$(docker inspect --format='{{json .State.Health.Status}}' "$CID" | tr -d '"')
+            echo "backend health: $STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy"
+          docker compose logs backend
+          exit 1
+
+      - name: Run Postman integration tests (Newman)
+        run: |
+          docker run --rm --network ${COMPOSE_PROJECT_NAME}_default \
+            -v "$PWD/postman:/etc/newman" postman/newman:alpine \
+            run "/etc/newman/HR_Brand_BI_API.postman_collection.json" \
+            -e "/etc/newman/HR_Brand_BI_CI.postman_environment.json" \
+            --timeout-request 10000
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Shutdown
+        if: always()
+        run: docker compose down -v
