@@ -1,0 +1,265 @@
+{
+  "info": {
+    "name": "HR Brand BI API",
+    "_postman_id": "d2a1c3f1-4c41-4c0e-baa7-hr-brand-bi",
+    "description": "API сервиса оркестрации и мониторинга ETL для BI-системы HR-бренда",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sources",
+      "item": [
+        {
+          "name": "GET Sources",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/sources"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Response is array\", () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Source (dreamjob)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"source_id\": \"dreamjob\", \"type\": \"review_site\", \"connection_params\": {}, \"status\": \"active\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/sources"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Correct source_id\", () => pm.expect(pm.response.json().source_id).to.eql('dreamjob'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Source Duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"source_id\": \"dreamjob\", \"type\": \"review_site\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/sources"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Source (inactive)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"inactive\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/sources/dreamjob"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Status updated\", () => pm.expect(pm.response.json().status).to.eql('inactive'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Source (fail if used)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/v1/sources/dreamjob"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 400 or 204\", () => pm.expect([400,204]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pipelines",
+      "item": [
+        {
+          "name": "GET Pipelines",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/pipelines"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Response is array\", () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST Pipeline (reviews_etl)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"pipeline_id\": \"reviews_etl\", \"sources\": [\"dreamjob\"], \"target\": \"hr_dwh\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/pipelines"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Pipeline (update schedule)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"schedule\": \"0 */12 * * *\" }"
+            },
+            "url": "{{baseUrl}}/api/v1/pipelines/reviews_etl"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Pipeline",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/v1/pipelines/reviews_etl"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pipeline Runs",
+      "item": [
+        {
+          "name": "POST Run Pipeline",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"params\": { \"period\": \"2025-01\" } }"
+            },
+            "url": "{{baseUrl}}/api/v1/pipelines/reviews_etl/runs"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"runId\", pm.response.json().run_id);",
+                  "pm.test(\"Status is 202\", () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Run Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Run Logs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/runs/{{runId}}/logs"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Logs array\", () => pm.expect(pm.response.json().logs).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
