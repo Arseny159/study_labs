@@ -230,10 +230,3 @@ def get_run_status(run_id: str):
 def get_run_logs(run_id: str):
     ensure_run_exists(run_id)
     return RunLogsResponse(run_id=run_id, logs=RUN_LOGS.get(run_id, []))
-
-SOURCES["dreamjob"] = {
-    "source_id": "dreamjob",
-    "type": "review_site",
-    "connection_params": {},
-    "status": "active",
-}
