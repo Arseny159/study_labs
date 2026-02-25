@@ -25,7 +25,6 @@ jobs:
 
       - name: Wait for Postgres to be healthy
         run: |
-          echo "Waiting for db health..."
           for i in {1..60}; do
             CID=$(docker compose ps -q db)
             STATUS=$(docker inspect --format='{{json .State.Health.Status}}' "$CID" | tr -d '"')
@@ -35,7 +34,6 @@ jobs:
             fi
             sleep 2
           done
-          echo "DB did not become healthy"
           docker compose logs db
           exit 1
 
@@ -44,7 +42,6 @@ jobs:
 
       - name: Wait for backend to be healthy
         run: |
-          echo "Waiting for backend health..."
           for i in {1..60}; do
             CID=$(docker compose ps -q backend)
             STATUS=$(docker inspect --format='{{json .State.Health.Status}}' "$CID" | tr -d '"')
@@ -54,7 +51,6 @@ jobs:
             fi
             sleep 2
           done
-          echo "Backend did not become healthy"
           docker compose logs backend
           exit 1
 
