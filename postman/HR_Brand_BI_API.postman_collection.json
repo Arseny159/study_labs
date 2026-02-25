@@ -7,7 +7,7 @@
   },
   "item": [
     {
-      "name": "Sources",
+      "name": "01 - Sources",
       "item": [
         {
           "name": "GET Sources",
@@ -43,8 +43,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));",
-                  "pm.test(\"Correct source_id\", () => pm.expect(pm.response.json().source_id).to.eql('dreamjob'));"
+                  "pm.test(\"Status is 201 or 409\", () => pm.expect([201,409]).to.include(pm.response.code));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.test(\"Correct source_id\", () => pm.expect(pm.response.json().source_id).to.eql('dreamjob'));",
+                  "} else {",
+                  "  pm.test(\"Duplicate returns error detail\", () => pm.expect(pm.response.json()).to.have.property('detail'));",
+                  "}"
                 ]
               }
             }
@@ -66,7 +70,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));"
+                  "pm.test(\"Status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Has detail\", () => pm.expect(pm.response.json()).to.have.property('detail'));"
                 ]
               }
             }
@@ -94,28 +99,11 @@
               }
             }
           ]
-        },
-        {
-          "name": "DELETE Source (fail if used)",
-          "request": {
-            "method": "DELETE",
-            "url": "{{baseUrl}}/api/v1/sources/dreamjob"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status is 400 or 204\", () => pm.expect([400,204]).to.include(pm.response.code));"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
     {
-      "name": "Pipelines",
+      "name": "02 - Pipelines",
       "item": [
         {
           "name": "GET Pipelines",
@@ -151,7 +139,12 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status is 201\", () => pm.response.to.have.status(201));"
+                  "pm.test(\"Status is 201 or 409\", () => pm.expect([201,409]).to.include(pm.response.code));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.test(\"Pipeline created\", () => pm.expect(pm.response.json().pipeline_id).to.eql('reviews_etl'));",
+                  "} else {",
+                  "  pm.test(\"Duplicate returns error detail\", () => pm.expect(pm.response.json()).to.have.property('detail'));",
+                  "}"
                 ]
               }
             }
@@ -173,24 +166,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "DELETE Pipeline",
-          "request": {
-            "method": "DELETE",
-            "url": "{{baseUrl}}/api/v1/pipelines/reviews_etl"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status is 204\", () => pm.response.to.have.status(204));"
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Schedule updated\", () => pm.expect(pm.response.json().schedule).to.eql('0 */12 * * *'));"
                 ]
               }
             }
@@ -199,7 +176,7 @@
       ]
     },
     {
-      "name": "Pipeline Runs",
+      "name": "03 - Pipeline Runs",
       "item": [
         {
           "name": "POST Run Pipeline",
@@ -217,8 +194,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.environment.set(\"runId\", pm.response.json().run_id);",
-                  "pm.test(\"Status is 202\", () => pm.response.to.have.status(202));"
+                  "pm.test(\"Status is 202\", () => pm.response.to.have.status(202));",
+                  "pm.test(\"Has run_id\", () => pm.expect(pm.response.json()).to.have.property('run_id'));",
+                  "pm.environment.set(\"runId\", pm.response.json().run_id);"
                 ]
               }
             }
@@ -235,7 +213,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Correct run_id\", () => pm.expect(pm.response.json().run_id).to.eql(pm.environment.get('runId')));"
                 ]
               }
             }
@@ -254,6 +233,47 @@
                 "exec": [
                   "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
                   "pm.test(\"Logs array\", () => pm.expect(pm.response.json().logs).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99 - Cleanup",
+      "item": [
+        {
+          "name": "DELETE Pipeline",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/v1/pipelines/reviews_etl"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"Empty body\", () => pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE Source (fail if used)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/v1/sources/dreamjob"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"Empty body\", () => pm.expect(pm.response.text()).to.eql(''));"
                 ]
               }
             }
