@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>HR Brand BI (Lab 5)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 8px; }
+    button { padding: 10px 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>HR Brand BI — клиент (Lab 5)</h1>
+  <p>Кнопка дергает серверный API и показывает JSON.</p>
+
+  <button id="btn">GET /api/v1/sources</button>
+  <pre id="out">Нажми кнопку…</pre>
+
+  <script>
+    const API = "http://localhost:8000";
+    document.getElementById("btn").addEventListener("click", async () => {
+      const out = document.getElementById("out");
+      out.textContent = "Загрузка...";
+      try {
+        const r = await fetch(`${API}/api/v1/sources`);
+        const data = await r.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = "Ошибка: " + e;
+      }
+    });
+  </script>
+</body>
+</html>
