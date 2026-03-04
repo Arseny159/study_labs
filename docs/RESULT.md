@@ -27,7 +27,7 @@ class DBConnection:
         return self.connection
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Singleton](Singleton.png)
 
 **Пояснение:**
@@ -54,7 +54,7 @@ class SourceFactory:
             raise ValueError(f"Unknown source type: {source_type}")
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Factory method](Factory_method.png)
 
 **Пояснение:**
@@ -82,7 +82,7 @@ class MediaSourceFactory(SourceAbstractFactory):
         return SourceCreateRequest(source_id=source_id, type="media", connection_params=connection_params)
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Abstract_Factory](Abstract_Factory.png)
 
 **Пояснение:**
@@ -123,7 +123,7 @@ adapter = DataAdapter(source_data)
 formatted_data = adapter.get_data()
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Adapter](Adapter.png)
 
 **Пояснение:**
@@ -157,7 +157,7 @@ source = RestAPIData()
 data = source.fetch_data()
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Bridge](Bridge.png)
 
 **Пояснение:**
@@ -208,7 +208,7 @@ etl_pipeline.add_component(LoadData())
 print(etl_pipeline.process())  # "Data extracted -> Data transformed -> Data loaded"
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Composite](Composite.png)
 
 **Пояснение:**
@@ -240,7 +240,7 @@ decorated_processor = DataDecorator(processor)
 print(decorated_processor.process())  # "Logging: Processing data"
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Decorator](Decorator.png)
 
 **Пояснение:**
@@ -297,7 +297,7 @@ etl_chain.process(data)
 print(data)  # {"extracted": True, "transformed": True, "loaded": True}
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Chain_of_Responsibility](Chain_of_Responsibility.png)
 
 **Пояснение:**
@@ -338,7 +338,7 @@ start_command.execute()
 stop_command.execute()
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Command](Command.png)
 
 **Пояснение:**
@@ -383,8 +383,8 @@ etl_process.add_observer(status_observer)
 etl_process.notify("Pipeline 'reviews_etl' is running.")
 ```
 
-**UML-диаграмма**
-![Observer](Observer.png)
+#### UML-диаграмма
+![Observer](Observer.jpg)
 
 **Пояснение:**
 *   Observer позволяет уведомлять заинтересованные компоненты о статусах выполнения ETL-процессов, повышая информативность системы.
@@ -426,7 +426,7 @@ etl_process = ETLProcess(ComplexTransformStrategy())
 print(etl_process.process_data(data))  # {'a': 2, 'b': 4}
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![Strategy](Strategy.png)
 
 **Пояснение:**
@@ -476,7 +476,7 @@ etl_process.set_state(LoadState())
 etl_process.execute()  # Loading data
 ```
 
-**UML-диаграмма**
+#### UML-диаграмма
 ![State](State.png)
 
 **Пояснение:**
